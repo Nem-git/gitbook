@@ -6,9 +6,9 @@ from bs4 import BeautifulSoup
 
 
 
-async def Download(session, path, url) -> None:
+async def Download(path, url) -> None:
     
-    async with session:
+    async with aiohttp.ClientSession() as session:
         async with session.get(url=url) as resp:
             if resp.ok:
                 async with aiofiles.open(file=path, mode="wb") as file:
@@ -27,11 +27,10 @@ async def Rip(path) -> None:
 if __name__ == "__main__":
     base_url:str = "https://gitbook.io/"
     
-    session = aiohttp.ClientSession(base_url)
-    path = "../"
+    path = "../stuff.html"
     url = "https://groupeinfo.gitbook.io/computer-science-data-base"
     
-    asyncio.run(main=Download(session=session, path=path, url=url))
+    asyncio.run(main=Download(path=path, url=url))
     
     
     
