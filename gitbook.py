@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 class Link:
 
     async def download(self, path : str, url : str) -> str:
-        name = f"{url.split("/")[-1]}.html"
+        name = url.split("/")[-1] + ".html"
         async with aiohttp.ClientSession() as session:
             async with session.get(url=url) as resp:
                 if resp.ok:
@@ -22,12 +22,13 @@ class Link:
 
 
     async def rip(self, dir_path : str, url, url_root : str, url_start : str) -> None:
-
-        os.makedirs(f"{dir_path}{url_root}", exist_ok=True)
+        
         dir_path = f"{dir_path}{url_root}"
+        os.makedirs(dir_path, exist_ok=True)
+        
         file_name = await self.download(path=dir_path, url=url)
 
-        async with aiofiles.open(file=f"{dir_path}/{file_name}", mode="rt", newline="\n") as file:
+        async with aiofiles.open(file=f"{dir_path}/{file_name}", mode="rt", newline="\n", encoding="utf-8") as file:
             soup = BeautifulSoup(await file.read(), "html.parser")
             for link in soup.find_all("a"):
                 async with asyncio.TaskGroup() as tg:
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     
     base_url = "https://gitbook.io"
     url_start = "https://groupeinfo.gitbook.io"
-    dir_path = ".."
+    dir_path = "."
     url_root = "/computer-science-data-base"
     url = "".join((url_start, url_root))
     
