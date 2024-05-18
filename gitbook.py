@@ -5,53 +5,6 @@ import aiofiles
 from bs4 import BeautifulSoup
 
 
-class Link:
-
-    async def download(self, path : str, url : str) -> str:
-        name = url.split("/")[-1] + ".html"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url=url) as resp:
-                if resp.ok:
-                    async with aiofiles.open(file=f"{path}/{name}", mode="wb") as file:
-                        async for chunk in resp.content.iter_chunked(n=8192):
-                            await file.write(chunk)
-                        return name
-
-                else:
-                    print(f"Server gave back error {resp.status}")
-
-
-    async def rip(self, dir_path : str, url, url_root : str, url_start : str, link : str) -> None:
-        
-        self.management(url_root, dir_path, url_start, link)
-        dir_path = f"{dir_path}{url_root}"
-        os.makedirs(dir_path, exist_ok=True)
-        
-        file_name = await self.download(path=dir_path, url=url)
-
-        async with aiofiles.open(file=f"{dir_path}/{file_name}", mode="rt", newline="\n", encoding="utf-8") as file:
-            soup = BeautifulSoup(await file.read(), "html.parser")
-            for link in soup.find_all("a"):
-                    
-                async with asyncio.TaskGroup() as tg:
-                    tg.create_task(coro=self.management(url_root, dir_path, url_start, link))
-
-
-    async def management(self, url_root : str, dir_path : str, url_start : str, link : str):
-        not_allowed = ["https:", "www.gitbook.com", "computer-science-data-base"]
-        l = link.get("href")
-
-        for directory in l.split("/"):
-            if directory != l.split("/")[-1] and directory != "" and directory not in not_allowed:
-                print(directory)
-                dir_path = f"{dir_path}/{directory}"
-                os.makedirs(dir_path, exist_ok=True)
-
-        if url_root in l:
-            await self.download(dir_path, f"{url_start}{l}")
-            print(l)
-
-
 class Time:
     
     async def download(self, path, url) -> None:
@@ -102,6 +55,56 @@ class Time:
 
 
 
+class Link:
+
+    async def download(self, path : str, url : str) -> str:
+        name = url.split("/")[-1] + ".html"
+        async with aiohttp.ClientSession() as session:
+            print(url)
+            async with session.get(url=url) as resp:
+                if resp.ok:
+                    async with aiofiles.open(file=f"{path}/{name}", mode="wb") as file:
+                        async for chunk in resp.content.iter_chunked(n=8192):
+                            await file.write(chunk)
+                        return name
+
+                else:
+                    print(f"Server gave back error {resp.status}")
+
+
+    async def rip(self, dir_path : str, url, url_root : str, url_start : str, link : str) -> None:
+        
+        file_name = await self.management(url_root, dir_path, url_start, link)
+        dir_path = f"{dir_path}{url_root}"
+
+        async with aiofiles.open(file=f"{dir_path}/{file_name}", mode="rt", newline="\n", encoding="utf-8") as file:
+            soup = BeautifulSoup(await file.read(), "html.parser")
+            for link in soup.find_all("a"):
+                    
+                async with asyncio.TaskGroup() as tg:
+                    tg.create_task(coro=self.management(url_root, dir_path, url_start, link))
+
+
+    async def management(self, url_root : str, dir_path : str, url_start : str, link : str):
+        not_allowed = ["https:", "www.gitbook.com", "groupeinfo.gitbook.io", ""]
+        l = link.get("href")
+
+        for directory in l.split("/"):
+            if directory != l.split("/")[-1] and directory not in not_allowed or directory == "computer-science-data-base":
+                print(directory)
+                dir_path = f"{dir_path}/{directory}"
+                os.makedirs(dir_path, exist_ok=True)
+
+        if url_root in l:
+            if l == "https://groupeinfo.gitbook.io/computer-science-data-base":
+                new_url = l
+
+            else:
+                new_url = f"{url_start}{l}"
+            return await self.download(dir_path, new_url)
+
+
+
 
 if __name__ == "__main__":
     
@@ -111,9 +114,11 @@ if __name__ == "__main__":
     url_root = "/computer-science-data-base"
     url = "".join((url_start, url_root))
     
+    links = {"href" : url}
+    
     time = Time()
     
     #asyncio.run(main=time.rip(dir_path, url))
     
     link = Link()
-    asyncio.run(main=link.rip(dir_path=dir_path, url=url, url_root=url_root, url_start=url_start, link=url))
+    asyncio.run(main=link.rip(dir_path=dir_path, url=url, url_root=url_root, url_start=url_start, link=links))
