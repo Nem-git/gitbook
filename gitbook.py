@@ -90,7 +90,7 @@ class Link:
         l = link.get("href")
 
         for directory in l.split("/"):
-            if directory != l.split("/")[-1] and directory not in not_allowed or directory == "computer-science-data-base":
+            if directory not in not_allowed or directory == "computer-science-data-base":
                 print(directory)
                 dir_path = f"{dir_path}/{directory}"
                 os.makedirs(dir_path, exist_ok=True)
