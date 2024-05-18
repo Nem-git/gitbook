@@ -21,8 +21,9 @@ class Link:
                     print(f"Server gave back error {resp.status}")
 
 
-    async def rip(self, dir_path : str, url, url_root : str, url_start : str) -> None:
+    async def rip(self, dir_path : str, url, url_root : str, url_start : str, link : str) -> None:
         
+        self.management(url_root, dir_path, url_start, link)
         dir_path = f"{dir_path}{url_root}"
         os.makedirs(dir_path, exist_ok=True)
         
@@ -31,12 +32,21 @@ class Link:
         async with aiofiles.open(file=f"{dir_path}/{file_name}", mode="rt", newline="\n", encoding="utf-8") as file:
             soup = BeautifulSoup(await file.read(), "html.parser")
             for link in soup.find_all("a"):
+                    
                 async with asyncio.TaskGroup() as tg:
                     tg.create_task(coro=self.management(url_root, dir_path, url_start, link))
 
 
     async def management(self, url_root : str, dir_path : str, url_start : str, link : str):
+        not_allowed = ["https:", "www.gitbook.com", "computer-science-data-base"]
         l = link.get("href")
+
+        for directory in l.split("/"):
+            if directory != l.split("/")[-1] and directory != "" and directory not in not_allowed:
+                print(directory)
+                dir_path = f"{dir_path}/{directory}"
+                os.makedirs(dir_path, exist_ok=True)
+
         if url_root in l:
             await self.download(dir_path, f"{url_start}{l}")
             print(l)
@@ -97,7 +107,7 @@ if __name__ == "__main__":
     
     base_url = "https://gitbook.io"
     url_start = "https://groupeinfo.gitbook.io"
-    dir_path = "."
+    dir_path = ".."
     url_root = "/computer-science-data-base"
     url = "".join((url_start, url_root))
     
@@ -106,4 +116,4 @@ if __name__ == "__main__":
     #asyncio.run(main=time.rip(dir_path, url))
     
     link = Link()
-    asyncio.run(main=link.rip(dir_path=dir_path, url=url, url_root=url_root, url_start=url_start))
+    asyncio.run(main=link.rip(dir_path=dir_path, url=url, url_root=url_root, url_start=url_start, link=url))
