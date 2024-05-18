@@ -88,9 +88,9 @@ class Link:
     async def management(self, url_root : str, dir_path : str, url_start : str, link : str):
         not_allowed = ["https:", "www.gitbook.com", "groupeinfo.gitbook.io", "", "?utm_source=content&utm_medium=trademark&utm_campaign=SoR8NHCZ4ZjclRjRssSc"]
         l = link.get("href")
-#A
+
         for directory in l.split("/"):
-            if directory not in not_allowed or directory == "computer-science-data-base":
+            if directory != l.split("/")[-1] and directory not in not_allowed or directory == "computer-science-data-base":
                 print(directory)
                 dir_path = f"{dir_path}/{directory}"
                 os.makedirs(dir_path, exist_ok=True)
