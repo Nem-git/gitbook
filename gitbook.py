@@ -86,7 +86,7 @@ class Link:
 
 
     async def management(self, url_root : str, dir_path : str, url_start : str, link : str):
-        not_allowed = ["https:", "www.gitbook.com", "groupeinfo.gitbook.io", ""]
+        not_allowed = ["https:", "www.gitbook.com", "groupeinfo.gitbook.io", "", "?utm_source=content&utm_medium=trademark&utm_campaign=SoR8NHCZ4ZjclRjRssSc"]
         l = link.get("href")
 
         for directory in l.split("/"):
