@@ -108,12 +108,15 @@ class Link:
                 soup = BeautifulSoup(await file.read(), "html.parser")
                 
                 for link in soup.find_all("a", href=True):
-                    link["href"] = f"{link["href"]}.html"
                     
-                    print(link.get("href"))
+                    if not "#" in link.get("href"):
+                        #print(link.get("href"))
+
+                        link["href"] = link["href"] + ".html"
+
             
             return dreturn
-            
+
 
 
 
