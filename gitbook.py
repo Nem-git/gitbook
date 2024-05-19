@@ -111,8 +111,10 @@ class Link:
                     
                     if not "#" in link.get("href"):
                         link["href"] = link["href"] + ".html"
+                        
                         for script in soup.find_all("script"):
-                            script["src"] = ""
+                            if "https://static.gitbook.com/_next/static/chunks/" in script["src"]:
+                                script["src"] = ""
                         
                         async with aiofiles.open(file=dreturn, mode="wt", encoding="utf-8") as filer:
                             await filer.write(str(soup.prettify()))
