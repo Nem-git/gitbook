@@ -59,7 +59,7 @@ class Link:
 
     async def download(self, path : str, url : str) -> None:
         async with aiohttp.ClientSession() as session:
-
+            #print(path)
             async with session.get(url=url) as resp:
                 if resp.ok:
                     async with aiofiles.open(file=path, mode="wb") as file:
@@ -77,18 +77,53 @@ class Link:
             soup = BeautifulSoup(await file.read(), "html.parser")
             for tag in soup.find_all("a", href=True):
                 async with asyncio.TaskGroup() as tg:
-                    tg.create_task(coro=self.rip(tag, dir_path))
+                    tg.create_task(coro=self.rip(tag, dir_path, url))
 
-    async def rip(self, tag, dir_path):
-        blacklist = ["https:", "www.gitbook.com", "https://www.gitbook.com/?utm_source=content&utm_medium=trademark&utm_campaign=SoR8NHCZ4ZjclRjRssSc", "?utm_source=content&utm_medium=trademark&utm_campaign=SoR8NHCZ4ZjclRjRssSc"]
+    async def rip(self, tag, dir_path, url):
+        repo = "computer-science-data-base"
         link = tag["href"]
         
-        for part in link.split("/"):
-            if "tt" in part:
-                print("n")
-            if part not in blacklist and link.split("/")[-2] != "computer-science-data-base":
-                os.makedirs(f"{dir_path}/{link}", exist_ok=True)
-                print(part)
+        last = link.split("/")[-1]
+        if repo in link:
+            file_path = f"{dir_path}/{link}"
+            os.makedirs(file_path, exist_ok=True)
+            if os.path.exists(file_path):
+                try:
+                    os.rmdir(file_path)
+                except OSError:
+                    pass
+        
+        if repo in link:
+            if not link.startswith(url):
+                link = "https://groupeinfo.gitbook.io" + link
+            
+            #print(link)
+            await self.download(f"{file_path}.html", link)
+            
+            async with aiofiles.open(file=f"{file_path}.html", mode="rt", encoding="utf-8") as file:
+                soup = BeautifulSoup(await file.read(), "html.parser")
+                
+                # Il va falloir que je fix les # un jour
+                #for l in soup.find_all("a", href=True):
+                #    if "#" in l["href"]:
+                #        if l["href"].split("#")[0] != "":
+                #            l["href"] = link + ".html#" + l["href"].split("#")[-1]
+                #            
+                #        print(l["href"])
+                #    else:
+                #        l["href"] = l["href"] + ".html"
+                #    
+                
+                # J'essaie de fix les directories
+                #for l in soup.find_all("a", href=True):
+                #    for tags in l.children:
+                #        if tags.name == "span":
+                #            print(link)
+                
+                
+                async with aiofiles.open(file=f"{file_path}.html", mode="wt", encoding="utf-8") as filer:
+                    await filer.write(str(soup.prettify()))
+        
 
         
         
