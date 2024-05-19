@@ -97,39 +97,47 @@ class Link:
             if not link.startswith(url):
                 link = "https://groupeinfo.gitbook.io" + link
             
-            #print(link)
+            print(link)
             await self.download(f"{file_path}.html", link)
             
-            async with aiofiles.open(file=f"{file_path}.html", mode="rt", encoding="utf-8") as file:
-                soup = BeautifulSoup(await file.read(), "html.parser")
-                
-                # Il va falloir que je fix les # un jour
-                #for l in soup.find_all("a", href=True):
-                #    if "#" in l["href"]:
-                #        if l["href"].split("#")[0] != "":
-                #            l["href"] = link + ".html#" + l["href"].split("#")[-1]
-                #            
-                #        print(l["href"])
-                #    else:
-                #        l["href"] = l["href"] + ".html"
-                #    
-                
-                # J'essaie de fix les directories
-                #for l in soup.find_all("a", href=True):
-                #    for tags in l.children:
-                #        if tags.name == "span":
-                #            print(link)
-                
-                
-                async with aiofiles.open(file=f"{file_path}.html", mode="wt", encoding="utf-8") as filer:
-                    await filer.write(str(soup.prettify()))
-        
+            await self.changes(file_path)
 
-        
-        
-        
-        
-        
+
+    async def changes(self, file_path):
+        async with aiofiles.open(file=f"{file_path}.html", mode="rt", encoding="utf-8") as file:
+            soup = BeautifulSoup(await file.read(), "html.parser")
+            
+            # Il va falloir que je fix les # un jour
+            #for l in soup.find_all("a", href=True):
+            #    if "#" in l["href"]:
+            #        if l["href"].split("#")[0] != "":
+            #            l["href"] = link + ".html#" + l["href"].split("#")[-1]
+            #            
+            #        print(l["href"])
+            #    else:
+            #        l["href"] = l["href"] + ".html"
+            #    
+            
+            # J'essaie de fix les directories
+            #for l in soup.find_all("a", href=True):
+            #    for tags in l.children:
+            #        if tags.name == "span":
+            #            print(link)
+            
+            # C'est un essai pour enlever le code de search bar mais ca fait rien
+            #for c in soup.find_all("div", {"class" : "flex md:w-56 grow-0 shrink-0 justify-self-end"}):
+            #    print(c)
+            #    c = c.button.decompose()
+            #    print(c)
+            
+            
+            
+            async with aiofiles.open(file=f"{file_path}.html", mode="wt", encoding="utf-8") as filer:
+                await filer.write(str(soup.prettify()))
+
+
+
+
 
 
 
