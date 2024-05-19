@@ -114,7 +114,7 @@ class Link:
                         
                     for script in soup.find_all("script"):
                         try:
-                            if script["src"] == "https://static.gitbook.com/_next/static/chunks/fd9d1056-ae64ba42edc9feae.js":
+                            if script["src"] == "https://static.gitbook.com/_next/static/chunks/5681-732789c29ab58e75.js":
                                 script["src"] = ""
                         
                         except KeyError:
