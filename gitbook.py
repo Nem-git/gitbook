@@ -61,6 +61,7 @@ class Link:
         name = url.split("/")[-1] + ".html"
         async with aiohttp.ClientSession() as session:
             print(url)
+
             async with session.get(url=url) as resp:
                 if resp.ok:
                     async with aiofiles.open(file=f"{path}/{name}", mode="wb") as file:
@@ -80,7 +81,7 @@ class Link:
         async with aiofiles.open(file=f"{dir_path}/{file_name}", mode="rt", newline="\n", encoding="utf-8") as file:
             soup = BeautifulSoup(await file.read(), "html.parser")
             for link in soup.find_all("a"):
-                    
+                
                 async with asyncio.TaskGroup() as tg:
                     tg.create_task(coro=self.management(url_root, dir_path, url_start, link))
 
@@ -91,7 +92,7 @@ class Link:
 
         for directory in l.split("/"):
             if directory != l.split("/")[-1] and directory not in not_allowed or directory == "computer-science-data-base":
-                print(directory)
+                #print(directory)
                 dir_path = f"{dir_path}/{directory}"
                 os.makedirs(dir_path, exist_ok=True)
 
@@ -101,7 +102,18 @@ class Link:
 
             else:
                 new_url = f"{url_start}{l}"
-            return await self.download(dir_path, new_url)
+            dreturn = f"{dir_path}/{await self.download(dir_path, new_url)}"
+            
+            async with aiofiles.open(file=dreturn, mode="rt+", encoding="utf-8") as file:
+                soup = BeautifulSoup(await file.read(), "html.parser")
+                
+                for link in soup.find_all("a", href=True):
+                    link["href"] = f"{link["href"]}.html"
+                    
+                    print(link.get("href"))
+            
+            return dreturn
+            
 
 
 
