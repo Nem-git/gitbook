@@ -101,18 +101,27 @@ class Link:
                 new_url = l
 
             else:
-                new_url = f"{url_start}{l}"
+                new_url = ".".join(f"{url_start}{l}".split(".")[:-1])
+            
             dreturn = f"{dir_path}/{await self.download(dir_path, new_url)}"
             
+            async with aiofiles.open(file=dreturn, mode="rt", encoding="utf-8") as file:
+                soup = BeautifulSoup(await file.read(), "html.parser")
+                for link in soup.find_all("a", href=True):
+                    
+                    if not "#" in link.get("href"):
+                        link["href"] = link["href"] + ".html"
+                        
+                        async with aiofiles.open(file=dreturn, mode="wt", encoding="utf-8") as filer:
+                            await filer.write(str(soup.prettify()))
+
             async with aiofiles.open(file=dreturn, mode="rt+", encoding="utf-8") as file:
                 soup = BeautifulSoup(await file.read(), "html.parser")
                 
                 for link in soup.find_all("a", href=True):
                     
                     if not "#" in link.get("href"):
-                        #print(link.get("href"))
-
-                        link["href"] = link["href"] + ".html"
+                        print(link["href"])
 
             
             return dreturn
