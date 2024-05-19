@@ -109,7 +109,10 @@ class Link:
                 soup = BeautifulSoup(await file.read(), "html.parser")
                 for link in soup.find_all("a", href=True):
                     
-                    if not "#" in link.get("href"):
+                    if "/" not in link["href"].split("#")[-1]:
+                        link["href"] = l + ".html" + link["href"]
+                        print(link["href"])
+                    else:
                         link["href"] = link["href"] + ".html"
                         
                     for script in soup.find_all("script"):
