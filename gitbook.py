@@ -113,8 +113,11 @@ class Link:
                         link["href"] = link["href"] + ".html"
                         
                         for script in soup.find_all("script"):
-                            if "https://static.gitbook.com/_next/static/chunks/" in script["src"]:
-                                script["src"] = ""
+                            try:
+                                if "https://static.gitbook.com/_next/static/chunks/" in script["src"]:
+                                    script["src"] = ""
+                            except KeyError:
+                                continue
                         
                         async with aiofiles.open(file=dreturn, mode="wt", encoding="utf-8") as filer:
                             await filer.write(str(soup.prettify()))
