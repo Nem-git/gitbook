@@ -112,15 +112,16 @@ class Link:
                     if not "#" in link.get("href"):
                         link["href"] = link["href"] + ".html"
                         
-                        for script in soup.find_all("script"):
-                            try:
-                                if "https://static.gitbook.com/_next/static/chunks/" in script["src"]:
-                                    script["src"] = ""
-                            except KeyError:
-                                continue
+                    for script in soup.find_all("script"):
+                        try:
+                            if script["src"] == "https://static.gitbook.com/_next/static/chunks/fd9d1056-ae64ba42edc9feae.js":
+                                script["src"] = ""
                         
-                        async with aiofiles.open(file=dreturn, mode="wt", encoding="utf-8") as filer:
-                            await filer.write(str(soup.prettify()))
+                        except KeyError:
+                            continue
+                    
+                    async with aiofiles.open(file=dreturn, mode="wt", encoding="utf-8") as filer:
+                        await filer.write(str(soup.prettify()))
                         
                 
 
