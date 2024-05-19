@@ -111,17 +111,14 @@ class Link:
                     
                     if not "#" in link.get("href"):
                         link["href"] = link["href"] + ".html"
+                        for script in soup.find_all("script"):
+                            script["src"] = ""
                         
                         async with aiofiles.open(file=dreturn, mode="wt", encoding="utf-8") as filer:
                             await filer.write(str(soup.prettify()))
-
-            async with aiofiles.open(file=dreturn, mode="rt+", encoding="utf-8") as file:
-                soup = BeautifulSoup(await file.read(), "html.parser")
+                        
                 
-                for link in soup.find_all("a", href=True):
-                    
-                    if not "#" in link.get("href"):
-                        print(link["href"])
+
 
             
             return dreturn
