@@ -79,12 +79,12 @@ class Link:
                 async with asyncio.TaskGroup() as tg:
                     tg.create_task(coro=self.rip(tag, dir_path, url))
 
+
     async def rip(self, tag, dir_path, url):
         repo = "computer-science-data-base"
         link = tag["href"]
         
-        last = link.split("/")[-1]
-        if repo in link:
+        if link != "https://www.gitbook.com/?utm_source=content&utm_medium=trademark&utm_campaign=SoR8NHCZ4ZjclRjRssSc":
             file_path = f"{dir_path}/{link}"
             os.makedirs(file_path, exist_ok=True)
             if os.path.exists(file_path):
@@ -92,20 +92,39 @@ class Link:
                     os.rmdir(file_path)
                 except OSError:
                     pass
-        
-        if repo in link:
+                    
+            
             if not link.startswith(url):
                 link = "https://groupeinfo.gitbook.io" + link
             
             print(link)
-            await self.download(f"{file_path}.html", link)
+            file_path = f"{file_path}.html"
+            
+            await self.download(file_path, link)
             
             await self.changes(file_path)
 
 
     async def changes(self, file_path):
-        async with aiofiles.open(file=f"{file_path}.html", mode="rt", encoding="utf-8") as file:
+        async with aiofiles.open(file=file_path, mode="rt", encoding="utf-8") as file:
             soup = BeautifulSoup(await file.read(), "html.parser")
+            
+            for l in soup.find_all("a", href=True):
+            #    if l["href"].endswith("/"):
+            #        l["href"] = rstrip("/")
+
+                if not l["href"].endswith(".html"):
+                    if "#" in l["href"] and l["href"].split("#")[0] != "":
+                        l["href"] = f"{l["href"].split("#")[0]}.html#{l["href"].split("#")[1]}"
+                    else:
+                        l["href"] = l["href"] + ".html"
+                    print(l["href"])
+            
+                
+                
+                #if l["href"].startswith("#"):
+                    
+            
             
             # Il va falloir que je fix les # un jour
             #for l in soup.find_all("a", href=True):
@@ -132,7 +151,7 @@ class Link:
             
             
             
-            async with aiofiles.open(file=f"{file_path}.html", mode="wt", encoding="utf-8") as filer:
+            async with aiofiles.open(file=file_path, mode="wt", encoding="utf-8") as filer:
                 await filer.write(str(soup.prettify()))
 
 
