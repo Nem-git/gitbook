@@ -3,9 +3,10 @@ import asyncio
 import aiohttp
 import aiofiles
 from bs4 import BeautifulSoup
+from time import time
 
 
-class Time:
+class New_time:
     
     async def download(self, path, url) -> None:
         async with aiohttp.ClientSession() as session:
@@ -19,19 +20,19 @@ class Time:
                     print(f"Server gave back error {resp.status}")
 
 
-    def verify(self, time, path):
+    def verify(self, new_time, path):
         
         if not os.path.exists(path):
             open(file=path, mode="wt").close()
 
         with open(file=path, mode="rt", newline="\n") as file:
             old_time = file.read()
-            if old_time == time:
+            if old_time == new_time:
                 return False
 
             else:
                 with open(file=path, mode="wt", newline="\n") as file:
-                    file.write(time)
+                    file.write(new_time)
                     return True
 
 
@@ -45,13 +46,13 @@ class Time:
             soup = BeautifulSoup(await file.read(), "html.parser")
             os.remove(file_path)
             
-            full_time = soup.find("time")
+            full_time = soup.find("new_time")
             
-            time = full_time.get("datetime")
+            new_time = full_time.get("datetime")
             
-            time_path = f"{path}/.time.temp"
+            time_path = f"{path}/.new_time.temp"
             
-            return self.verify(time, time_path)
+            return self.verify(new_time, time_path)
 
 
 
@@ -81,10 +82,9 @@ class Link:
 
 
     async def rip(self, tag, dir_path, url):
-        repo = "computer-science-data-base"
         link = tag["href"]
         
-        if link != "https://www.gitbook.com/?utm_source=content&utm_medium=trademark&utm_campaign=SoR8NHCZ4ZjclRjRssSc":
+        if "utm_source" not in link:
             file_path = f"{dir_path}/{link}"
             os.makedirs(file_path, exist_ok=True)
             if os.path.exists(file_path):
@@ -109,47 +109,34 @@ class Link:
         async with aiofiles.open(file=file_path, mode="rt", encoding="utf-8") as file:
             soup = BeautifulSoup(await file.read(), "html.parser")
             
-            for l in soup.find_all("a", href=True):
-            #    if l["href"].endswith("/"):
-            #        l["href"] = rstrip("/")
+            
+            for link in soup.find_all("a", href=True):
+                url = link["href"]
+                
+                if len(link.contents) >= 2 and "utm_source" not in url:
+                    if "group" in link.contents[1]["class"]:
+                
+                #if url == "/computer-science-data-base":
+                #    url = f"{url}.html"
 
-                if not l["href"].endswith(".html"):
-                    if "#" in l["href"] and l["href"].split("#")[0] != "":
-                        l["href"] = f"{l["href"].split("#")[0]}.html#{l["href"].split("#")[1]}"
-                    else:
-                        l["href"] = l["href"] + ".html"
-                    print(l["href"])
-            
+                        for script in soup.find_all("script"):
+                            if script.string:
+                                if url in script.string:
+                                    
+                                    if url[0] == "#":
+                                        script.string = script.string.replace("#", ".html#")
+                                        print(url)
+                                    
+                                    if "#" not in url:
+                                        script.string = script.string.replace(f"{url}\\", f"{url}.html\\")
                 
-                
-                #if l["href"].startswith("#"):
-                    
+                if url == "/computer-science-data-base":
+                    for script in soup.find_all("script"):
+                        if script.string:
+                            if url in script.string:
+                                script.string = script.string.replace(f'{url}/\\",\\', f'{url}.html\\",\\') #"pathname for only carre, pis pas logo en haut a gauche
             
-            
-            # Il va falloir que je fix les # un jour
-            #for l in soup.find_all("a", href=True):
-            #    if "#" in l["href"]:
-            #        if l["href"].split("#")[0] != "":
-            #            l["href"] = link + ".html#" + l["href"].split("#")[-1]
-            #            
-            #        print(l["href"])
-            #    else:
-            #        l["href"] = l["href"] + ".html"
-            #    
-            
-            # J'essaie de fix les directories
-            #for l in soup.find_all("a", href=True):
-            #    for tags in l.children:
-            #        if tags.name == "span":
-            #            print(link)
-            
-            # C'est un essai pour enlever le code de search bar mais ca fait rien
-            #for c in soup.find_all("div", {"class" : "flex md:w-56 grow-0 shrink-0 justify-self-end"}):
-            #    print(c)
-            #    c = c.button.decompose()
-            #    print(c)
-            
-            
+            link["href"] = url
             
             async with aiofiles.open(file=file_path, mode="wt", encoding="utf-8") as filer:
                 await filer.write(str(soup.prettify()))
@@ -171,9 +158,12 @@ if __name__ == "__main__":
     
     os.makedirs(dir_path, exist_ok=True)
     
-    time = Time()
+    new_time = New_time()
     
-    #asyncio.run(main=time.rip(dir_path, url))
+    #asyncio.run(main=new_time.rip(dir_path, url))
     
     link = Link()
+    
+    _ = time()
     asyncio.run(main=link.management(f"{dir_path}{file_path}.html", url, dir_path))
+    print(time() - _)
