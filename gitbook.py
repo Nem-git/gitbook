@@ -57,6 +57,8 @@ class New_time:
 
 
 class Link:
+    links = []
+
 
     async def download(self, path : str, url : str) -> None:
         async with aiohttp.ClientSession() as session:
@@ -76,9 +78,14 @@ class Link:
         
         async with aiofiles.open(file=path, mode="rt", encoding="utf-8") as file:
             soup = BeautifulSoup(await file.read(), "html.parser")
+        
             for tag in soup.find_all("a", href=True):
+                self.links.append(tag)
+            
+            for tag in self.links:
                 async with asyncio.TaskGroup() as tg:
                     tg.create_task(coro=self.rip(tag, dir_path, url))
+                #print(tag)
 
 
     async def rip(self, tag, dir_path, url):
@@ -111,7 +118,12 @@ class Link:
             
             
             for link in soup.find_all("a", href=True):
-                url = link["href"]
+                
+                try:
+                    url = link["href"]
+                    self.links.append(url)
+                except:
+                    pass
                 
                 if len(link.contents) >= 2 and "utm_source" not in url:
                     if "group" in link.contents[1]["class"]:
@@ -123,12 +135,7 @@ class Link:
                             if script.string:
                                 if url in script.string:
                                     
-                                    if url[0] == "#":
-                                        script.string = script.string.replace("#", ".html#")
-                                        print(url)
-                                    
-                                    if "#" not in url:
-                                        script.string = script.string.replace(f"{url}\\", f"{url}.html\\")
+                                    script.string = script.string.replace(f"{url}\\", f"{url}.html\\")
                 
                 if url == "/computer-science-data-base":
                     for script in soup.find_all("script"):
@@ -152,7 +159,7 @@ if __name__ == "__main__":
     dir_path = "../computer-science-data-base"
     file_path = "/computer-science-data-base"
     url_root = "/computer-science-data-base"
-    url = "https://groupeinfo.gitbook.io/computer-science-data-base"
+    url = "https://groupeinfo.gitbook.io/computer-science-data-base/sources"
     
     
     
