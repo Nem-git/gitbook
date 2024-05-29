@@ -57,8 +57,7 @@ class New_time:
 
 
 class Link:
-    links = []
-
+    blacklist = ["utm_source", "appspot.com", "google.com"]
 
     async def download(self, path : str, url : str) -> None:
         async with aiohttp.ClientSession() as session:
@@ -80,68 +79,64 @@ class Link:
             soup = BeautifulSoup(await file.read(), "html.parser")
         
             for tag in soup.find_all("a", href=True):
-                self.links.append(tag)
-            
-            for tag in self.links:
                 async with asyncio.TaskGroup() as tg:
                     tg.create_task(coro=self.rip(tag, dir_path, url))
-                #print(tag)
 
 
     async def rip(self, tag, dir_path, url):
         link = tag["href"]
         
-        if "utm_source" not in link:
-            file_path = f"{dir_path}/{link}"
+        for black in self.blacklist:
+            if black in link:
+                return
+        
+        file_path = f"{dir_path}/{link}"
+
+        try:
             os.makedirs(file_path, exist_ok=True)
-            if os.path.exists(file_path):
-                try:
-                    os.rmdir(file_path)
-                except OSError:
-                    pass
-                    
+        except:
+            pass
             
-            if not link.startswith(url):
-                link = "https://groupeinfo.gitbook.io" + link
+        if os.path.exists(file_path):
+            try:
+                os.rmdir(file_path)
+            except OSError:
+                pass
             
-            print(link)
-            file_path = f"{file_path}.html"
-            
-            await self.download(file_path, link)
-            
-            await self.changes(file_path)
+        if not link.startswith(url):
+            link = "https://groupeinfo.gitbook.io" + link
+        
+        print(link)
+        file_path = f"{file_path}.html"
+
+        await self.download(file_path, link)
+        await self.changes(file_path)
 
 
     async def changes(self, file_path):
         async with aiofiles.open(file=file_path, mode="rt", encoding="utf-8") as file:
             soup = BeautifulSoup(await file.read(), "html.parser")
             
-            
             for link in soup.find_all("a", href=True):
                 
-                try:
-                    url = link["href"]
-                    self.links.append(url)
-                except:
-                    pass
+                url = link["href"]
                 
-                if len(link.contents) >= 2 and "utm_source" not in url:
-                    if "group" in link.contents[1]["class"]:
+                for black in self.blacklist:
+                    if len(link.contents) <= 1 or black in url:
+                        return
                 
-                #if url == "/computer-science-data-base":
-                #    url = f"{url}.html"
-
-                        for script in soup.find_all("script"):
-                            if script.string:
-                                if url in script.string:
-                                    
-                                    script.string = script.string.replace(f"{url}\\", f"{url}.html\\")
+                if "group" in link.contents[1]["class"]:
+                
+                    for script in soup.find_all("script"):
+                        if script.string:
+                            if f"{url}\\" in script.string:
+                                script.string = script.string.replace(f"{url}\\", f"{url}.html\\")
                 
                 if url == "/computer-science-data-base":
                     for script in soup.find_all("script"):
                         if script.string:
-                            if url in script.string:
-                                script.string = script.string.replace(f'{url}/\\",\\', f'{url}.html\\",\\') #"pathname for only carre, pis pas logo en haut a gauche
+                            if f'{url}/\\",\\' in script.string:
+                                script.string = script.string.replace(f'{url}/\\",\\', f'{url}.html\\",\\')
             
             link["href"] = url
             
@@ -159,7 +154,7 @@ if __name__ == "__main__":
     dir_path = "../computer-science-data-base"
     file_path = "/computer-science-data-base"
     url_root = "/computer-science-data-base"
-    url = "https://groupeinfo.gitbook.io/computer-science-data-base/sources"
+    url = "https://groupeinfo.gitbook.io/computer-science-data-base"
     
     
     
