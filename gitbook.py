@@ -151,7 +151,7 @@ class Link:
 
 if __name__ == "__main__":
     
-    dir_path = "../computer-science-data-base"
+    dir_path = "../../computer-science-data-base"
     file_path = "/computer-science-data-base"
     url_root = "/computer-science-data-base"
     url = "https://groupeinfo.gitbook.io/computer-science-data-base"
